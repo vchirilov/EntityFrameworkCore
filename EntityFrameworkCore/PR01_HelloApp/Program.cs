@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 
 namespace PR01_HelloApp
@@ -7,71 +8,52 @@ namespace PR01_HelloApp
     {
         public static void Main(string[] args)
         {
-            // Добавление
+
             using (ApplicationContext db = new ApplicationContext())
             {
-                User user1 = new User { Name = "Tom", Age = 33 };
-                User user2 = new User { Name = "Alice", Age = 26 };
+                // пересоздадим базу данных
+                db.Database.EnsureDeleted();
+                db.Database.EnsureCreated();
 
-                // Добавление
-                db.Users.Add(user1);
-                db.Users.Add(user2);
+                // создание и добавление моделей
+                Student tom = new Student { Name = "Tom" };
+                Student alice = new Student { Name = "Alice" };
+                Student bob = new Student { Name = "Bob" };
+                db.Students.AddRange(tom, alice, bob);
+
+                Course algorithms = new Course { Name = "Алгоритмы" };
+                Course basics = new Course { Name = "Основы программирования" };
+                Course sql = new Course { Name = "SQL" };
+
+                db.Courses.AddRange(algorithms, basics, sql);
+
+                // добавляем к студентам курсы
+                tom.Courses.Add(algorithms);
+                tom.Courses.Add(basics);                
+                alice.Courses.Add(algorithms);
+                bob.Courses.Add(basics);
+
+                sql.Students.AddRange(new Student[] { tom, bob });
+
                 db.SaveChanges();
             }
 
-            // получение
+
             using (ApplicationContext db = new ApplicationContext())
             {
-                // получаем объекты из бд и выводим на консоль
-                var users = db.Users.ToList();
-                Console.WriteLine("Records after add:");
-                foreach (User u in users)
+                var courses = db.Courses.Include(c => c.Students).ToList();
+                // выводим все курсы
+                foreach (var c in courses)
                 {
-                    Console.WriteLine($"{u.Id}.{u.Name} - {u.Age}");
+                    Console.WriteLine($"Course: {c.Name}");
+                    // выводим всех студентов для данного кура
+                    foreach (Student s in c.Students)
+                        Console.WriteLine($"Name: {s.Name}");
+                    Console.WriteLine("-------------------");
                 }
             }
 
-            // Редактирование
-            using (ApplicationContext db = new ApplicationContext())
-            {
-                // получаем первый объект
-                User user = db.Users.FirstOrDefault();
-                if (user != null)
-                {
-                    user.Name = "Bob";
-                    user.Age = 44;
-                    //обновляем объект
-                    //db.Users.Update(user);
-                    db.SaveChanges();
-                }
-                // выводим данные после обновления
-                Console.WriteLine("\nRecords after update:");
-                var users = db.Users.ToList();
-                foreach (User u in users)
-                {
-                    Console.WriteLine($"{u.Id}.{u.Name} - {u.Age}");
-                }
-            }
-
-            // Удаление
-            using (ApplicationContext db = new ApplicationContext())
-            {
-                // получаем первый объект
-                User user = db.Users.FirstOrDefault();
-                if (user != null)
-                {
-                    //удаляем объект
-                    db.Users.Remove(user);
-                    db.SaveChanges();
-                }
-                // выводим данные после обновления
-                Console.WriteLine("\nRecords after remove:");
-                var users = db.Users.ToList();
-                foreach (User u in users)
-                {
-                    Console.WriteLine($"{u.Id}.{u.Name} - {u.Age}");
-                }
-            }
+            Console.WriteLine("Done");
             Console.Read();
         }
     }

@@ -7,12 +7,13 @@ namespace PR01_HelloApp
 {
     public class ApplicationContext : DbContext
     {
-        public DbSet<User> Users { get; set; }
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<Student> Students { get; set; }
 
         public ApplicationContext()
         {
             //Database.EnsureDeleted();
-            Database.EnsureCreated();
+            //Database.EnsureCreated();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -25,12 +26,6 @@ namespace PR01_HelloApp
         {
             // использование Fluent API
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<User>().HasData(
-            new User[]
-            {
-                new User { Id=1, Name="Slavic", Age=23}
-            });
         }
     }
 }
